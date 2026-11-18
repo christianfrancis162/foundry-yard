@@ -591,11 +591,14 @@ function runShot(name) {
     hud.setBombStatus('BOMB AT SITE A — 0:28', false);
     hud.setAmmo(weapon.state.mag, weapon.state.reserve, weapon.stats.name);
   } else {
+    // Match end: blue takes the match 5 — 2. The overlay shows the result, the
+    // player's score and the restart button — the whole loop in one frame.
     rounds.state.phase = 'roundEnd';
-    rounds.state.wins = { blue: 2, red: 1 };
-    rounds.state.round = 3;
-    rounds.state.history = ['W', 'L', 'W'];
-    rounds.state.money = 3100;
+    rounds.state.wins = { blue: 5, red: 2 };
+    rounds.state.round = 7;
+    rounds.state.history = ['W', 'L', 'W', 'W', 'L', 'W', 'W'];
+    rounds.state.money = 4600;
+    kills = 7;
     const rook = bots.bots.find((b) => b.name === 'Rook');
     const havoc = bots.bots.find((b) => b.name === 'Havoc');
     for (const b of [rook, havoc]) {
@@ -610,15 +613,16 @@ function runShot(name) {
     aimAt(new THREE.Vector3(0, 1.2, -6));
     playerHealth = 64;
     hud.setHealth(64);
-    hud.setMoney(3100);
+    hud.setMoney(4600);
     hud.setTimer(0);
-    hud.setRoundScore(2, 1, 3);
+    hud.setRoundScore(5, 2, 7);
     hud.setTeams(2, 1);
-    hud.setScore(3);
-    hud.setRoundHistory(['W', 'L', 'W']);
+    hud.setScore(7);
+    hud.setRoundHistory(['W', 'L', 'W', 'W', 'L', 'W', 'W']);
     hud.setGrenades(0);
     hud.setAmmo(weapon.state.mag, weapon.state.reserve, weapon.stats.name);
-    hud.showBanner('ROUND WON', 'Bomb defused.', 60000);
+    rounds.state.phase = 'matchEnd';
+    hud.showOverlay('end', kills, 'VICTORY! Final score 5 — 2.');
   }
   paintTwiceThenReady();
 }
