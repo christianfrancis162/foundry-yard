@@ -170,11 +170,13 @@ export function createHud() {
       clearTimeout(damageTimer);
       damageTimer = setTimeout(() => damageDir.classList.remove('on'), 700);
     },
-    killFeed(text, killerTeam) {
+    // Staged captures hold the feed longer than live play: a headless capture
+    // can take many seconds between the kill and the screenshot.
+    killFeed(text, killerTeam, holdMs = 5000) {
       const item = el('div', `feed-item ${killerTeam === 'blue' ? 'feed-blue' : 'feed-red'}`, text);
       killfeed.prepend(item);
       while (killfeed.children.length > 5) killfeed.removeChild(killfeed.lastChild);
-      setTimeout(() => { if (item.parentNode) item.remove(); }, 5000);
+      setTimeout(() => { if (item.parentNode) item.remove(); }, holdMs);
     },
     showBanner(titleText, subText, holdMs = 2600) {
       bannerTitle.textContent = titleText;

@@ -198,5 +198,5 @@ export function createWorld(scene) {
   fill.position.set(-12, 10, -14);
   scene.add(fill);
 
-  return { colliders, shootables, group, sites: SITES };
+  return { colliders, shootables, group, sites: SITES, lights: { hemi, key, fill } };
 }

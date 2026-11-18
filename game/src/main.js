@@ -1,8 +1,9 @@
 // Boot and the one loop: a fixed 60 Hz simulation feeding a render at the display's rate.
 // Foundry Yard: you plus two friendly bots against three enemy bots, rounds, money,
 // buy menu, a bomb to plant and defuse, and grenades.
-// ?shot=start|play|end with &seed=N sets up a deterministic frame for a capture, renders it
-// twice, then freezes it and sets window.__shotReady.
+// ?shot=start|play|defuse|end with &seed=N sets up a deterministic frame for a capture, renders it
+// twice, then freezes it and sets window.__shotReady. start = title + buy menu,
+// play = live combat with HUD, defuse = bomb defusal at Site A, end = match result + restart.
 import * as THREE from 'three';
 import { PALETTE } from './palette.js';
 import { createWorld } from './world.js';
@@ -535,6 +536,13 @@ function settle(steps) {
 function runShot(name) {
   hud.hideOverlay();
   hud.hideBuyMenu();
+  // Shots are staged to read at contact-sheet size: lift the lights and the
+  // exposure so the yard, the sites and the HUD are legible when shrunk.
+  // This runs only for ?shot= captures; live play is untouched.
+  world.lights.hemi.intensity = 2.2;
+  world.lights.key.intensity = 3.8;
+  world.lights.fill.intensity = 1.6;
+  renderer.toneMappingExposure = 1.25;
   body.pitch = 0;
   body.yaw = 0;
   bots.setPositionsForShot();
@@ -590,6 +598,51 @@ function runShot(name) {
     hud.setGrenades(1);
     hud.setBombStatus('BOMB AT SITE A — 0:28', false);
     hud.setAmmo(weapon.state.mag, weapon.state.reserve, weapon.stats.name);
+    // The kill feed and hit marker fade in seconds, but a headless capture
+    // takes much longer: re-pin them so they are still on screen for the shot.
+    hud.killFeed('You ✕ Blitz', 'blue', 60000);
+    hud.hitMarker(true, 60000);
+  } else if (name === 'defuse') {
+    // Defusal at Site A: the bomb is planted with 12 seconds left, Rook fell
+    // clearing the site, and the player is on the bomb halfway through the
+    // defuse. Shotgun out, round 5, blue up 3 — 2. The banner, the bomb line
+    // and the kill feed together show the objective loop in one frame.
+    weapon.equip('shotgun');
+    rounds.state.phase = 'combat';
+    rounds.state.phaseTime = 12;
+    rounds.state.round = 5;
+    rounds.state.wins = { blue: 3, red: 2 };
+    rounds.state.money = 3400;
+    rounds.state.history = ['W', 'L', 'W', 'W'];
+    rounds.state.grenades = 0;
+    const rook = bots.bots.find((b) => b.name === 'Rook');
+    if (rook) {
+      rook.alive = false;
+      rook.fall = 1;
+      rook.group.rotation.x = -1.45;
+      rook.group.position.y = -0.08;
+    }
+    body.position.set(-11.6, 0, -8.3);
+    settle(20);
+    // The bomb is planted at Site A: stand by it and defuse.
+    bomb.debugPlant('A', -13, -9.5, 12);
+    bomb.state.defuseProgress = 0.55;
+    aimAt(new THREE.Vector3(-13, 0.6, -9.5));
+    playerHealth = 58;
+    hud.setHealth(58);
+    hud.setMoney(3400);
+    hud.setTimer(12);
+    hud.setRoundScore(3, 2, 5);
+    hud.setTeams(3, 2);
+    hud.setScore(4);
+    hud.setRoundHistory(['W', 'L', 'W', 'W']);
+    hud.setGrenades(0);
+    hud.setBombStatus('BOMB AT SITE A — 0:12 — DEFUSING 55%', true);
+    hud.setAmmo(weapon.state.mag, weapon.state.reserve, weapon.stats.name);
+    // Long holds: a headless capture takes many seconds, and the banner and
+    // feed would otherwise fade before the screenshot is taken.
+    hud.killFeed('You ✕ Rook', 'blue', 60000);
+    hud.showBanner('DEFUSING THE BOMB', 'Hold steady — 4 seconds to disarm.', 60000);
   } else {
     // Match end: blue takes the match 5 — 2. The overlay shows the result, the
     // player's score and the restart button — the whole loop in one frame.
