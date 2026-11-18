@@ -22,9 +22,19 @@ const MIME: Record<string, string> = {
   '.png': 'image/png',
   '.jpg': 'image/jpeg',
   '.jpeg': 'image/jpeg',
+  '.gif': 'image/gif',
+  '.webp': 'image/webp',
+  '.svg': 'image/svg+xml',
+  '.ico': 'image/x-icon',
+  '.woff2': 'font/woff2',
   '.glb': 'model/gltf-binary',
+  '.gltf': 'model/gltf+json',
+  '.bin': 'application/octet-stream',
+  '.wasm': 'application/wasm',
   '.wav': 'audio/wav',
+  '.mp3': 'audio/mpeg',
   '.ogg': 'audio/ogg',
+  '.txt': 'text/plain; charset=utf-8',
 };
 
 createServer((request, response) => {
